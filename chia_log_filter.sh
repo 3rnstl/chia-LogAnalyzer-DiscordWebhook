@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Pfad zur Chia-Log-Datei
+# Pfad zur Chia-Log-Datei !
 LOG_FILE="debug.log"
 
 # Webhook URLs
