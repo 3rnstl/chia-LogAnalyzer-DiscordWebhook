@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Path to the Chia log file / Pfad zur Chia-Log-Datei
+# Pfad zur Chia-Log-Datei
 LOG_FILE="debug.log"
 
 # Webhook URLs
-WEBHOOK_URL_WARNINGS="placeholder_discord_webhook_url"
-WEBHOOK_URL_BLOCKS="placeholder_discord_webhook_url"
+WEBHOOK_URL_WARNINGS="https://discord.com/api/webhooks/1175211278361444423/nHMV7Uf9a32Qt60RqjY0PRl1Ny5Tzia5Vaw8zZmg12SNPC_6a-KvzDQf1vKT8etPvblp"
+WEBHOOK_URL_BLOCKS="https://discord.com/api/webhooks/1175221899660361759/9zyAFlmHyF7I12jnVAJ6K6QJmEkrISblyPl2aG-tgwlHSryeKb4Dan9wwJd8Uwii9nKW"
 
-# Function to send messages to Discord / Funktion, um Nachrichten an Discord zu senden
+# Funktion, um Nachrichten an Discord zu senden
 send_to_discord() {
     local webhook_url=$1
     local message=$2
@@ -16,19 +16,49 @@ send_to_discord() {
          $webhook_url
 }
 
-# Check if the log file exists / Überprüfen, ob die Log-Datei existiert
+# Skript erfolgreich gestartet
+echo "Skript erfolgreich gestartet."
+
+# Überprüfen, ob die Log-Datei existiert
 if [ ! -f "$LOG_FILE" ]; then
     echo "Log-Datei nicht gefunden: $LOG_FILE"
     exit 1
 fi
 
-# Paths for the output filesPfade für die Ausgabedateien
+# Pfade für die Ausgabedateien
 OUTPUT_FILE_WARNINGS="$(dirname "$LOG_FILE")/$(basename "$LOG_FILE" .log)-warnings-errors.log"
 OUTPUT_FILE_BLOCKS="$(dirname "$LOG_FILE")/$(basename "$LOG_FILE" .log)-found-blocks.log"
 
-# Monitoring the log file in real time / Überwachung der Log-Datei in Echtzeit
+# Timer initialisieren
+LAST_LOG_TIME=$(date +%s)
+FARM_OFFLINE_NOTIFIED=false
+
+# Überwachung der Log-Datei in Echtzeit
 tail -F "$LOG_FILE" | while read line; do
+    # Aktuelle Zeit aktualisieren
+    CURRENT_TIME=$(date +%s)
+
+    # Überprüfen, ob 5 Minuten ohne jegliche Log-Nachricht vergangen sind
+    if (( CURRENT_TIME - LAST_LOG_TIME > 300 )); then
+        if [ "$FARM_OFFLINE_NOTIFIED" = false ]; then
+            send_to_discord "$WEBHOOK_URL_WARNINGS" "Farm erzeugt keine Logs - Farm Offline"
+            echo "Farm erzeugt keine Logs - Farm Offline"
+            FARM_OFFLINE_NOTIFIED=true
+        fi
+    else
+        if [ "$FARM_OFFLINE_NOTIFIED" = true ]; then
+            send_to_discord "$WEBHOOK_URL_WARNINGS" "Farm erzeugt wieder Logs - Farm online"
+            echo "Farm erzeugt wieder Logs - Farm online"
+            FARM_OFFLINE_NOTIFIED=false
+        fi
+    fi
+
+    # Aktualisiere den Timer für jede Log-Nachricht
+    LAST_LOG_TIME=$CURRENT_TIME
+
+    # Verarbeite und zeige nur WARNING und ERROR Nachrichten
     if [[ "$line" =~ WARNING|Error ]]; then
+        echo "$line"
         echo "$line" >> "$OUTPUT_FILE_WARNINGS"
         send_to_discord "$WEBHOOK_URL_WARNINGS" "$line"
     elif [[ "$line" =~ "Farmed unfinished_block" ]]; then
