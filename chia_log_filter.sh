@@ -4,8 +4,8 @@
 LOG_FILE="debug.log"
 
 # Webhook URLs
-WEBHOOK_URL_WARNINGS="https://discord.com/api/webhooks/1175211278361444423/nHMV7Uf9a32Qt60RqjY0PRl1Ny5Tzia5Vaw8zZmg12SNPC_6a-KvzDQf1vKT8etPvblp"
-WEBHOOK_URL_BLOCKS="https://discord.com/api/webhooks/1175221899660361759/9zyAFlmHyF7I12jnVAJ6K6QJmEkrISblyPl2aG-tgwlHSryeKb4Dan9wwJd8Uwii9nKW"
+WEBHOOK_URL_WARNINGS="WEBHOOK_PLACEHOLDER"
+WEBHOOK_URL_BLOCKS="WEBHOOK_PLACEHOLDER"
 
 # Funktion, um Nachrichten an Discord zu senden
 send_to_discord() {
